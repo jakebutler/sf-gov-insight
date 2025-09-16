@@ -1,0 +1,17 @@
+crawl4ai>=0.7.0
+aiohttp>=3.9.5
+pydantic>=2.7.0
+python-dateutil>=2.9.0
+tqdm>=4.66.5
+pandas>=2.2.2
+beautifulsoup4>=4.12.3
+lxml>=5.2.2
+requests>=2.32.3
+pdfplumber>=0.11.0
+weaviate-client>=4.6.4
+openai>=1.35.0
+strands-agents[openai]
+python-dotenv>=1.0.1
+opik>=0.3.0
+fastapi>=0.112.0
+uvicorn[standard]>=0.30.0
