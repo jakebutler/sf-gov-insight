@@ -2,13 +2,16 @@
 line-length = 100
 # Target latest Python used here
 target-version = "py313"
-# Basic error/formatter rules + import sorting
-select = ["E", "F", "I"]
 exclude = [
   ".venv",
   ".venv-sfgov",
   "web",
+  "ai_conference_hack_day_weaviate.py",
 ]
+
+[tool.ruff.lint]
+# Basic error/formatter rules + import sorting
+select = ["E", "F", "I"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["agent", "backend", "ingest", "scraper", "demos"]

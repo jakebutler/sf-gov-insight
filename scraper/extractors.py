@@ -33,7 +33,8 @@ def extract_table_css(url: str) -> Dict[str, Any]:
     import json
     
     try:
-        from crawl4ai import AsyncWebCrawler, CacheMode, CrawlerRunConfig, JsonCssExtractionStrategy
+        from crawl4ai import AsyncWebCrawler, CacheMode, CrawlerRunConfig
+        from crawl4ai import JsonCssExtractionStrategy
     except ImportError:
         # Return empty dict if crawl4ai is not available
         return {}
