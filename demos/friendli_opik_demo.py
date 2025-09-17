@@ -3,15 +3,14 @@ from __future__ import annotations
 import argparse
 import os
 from textwrap import shorten
-from typing import List, Dict
+from typing import Dict, List
 
 from dotenv import load_dotenv
-
 
 try:
     import opik  # type: ignore
     from opik.integrations.openai import track_openai  # type: ignore
-except Exception as e:
+except Exception:
     opik = None  # type: ignore
     track_openai = None  # type: ignore
 
@@ -36,8 +35,14 @@ def get_weaviate_client():
     url = os.getenv("WEAVIATE_URL") or os.getenv("WEAVIATE_CLUSTER_URL")
     key = os.getenv("WEAVIATE_API_KEY")
     if not url or not key:
-        raise RuntimeError("WEAVIATE_URL (or WEAVIATE_CLUSTER_URL) and WEAVIATE_API_KEY are required")
-    headers = {"X-Friendli-Token": os.getenv("FRIENDLI_TOKEN")} if os.getenv("FRIENDLI_TOKEN") else None
+        raise RuntimeError(
+            "WEAVIATE_URL (or WEAVIATE_CLUSTER_URL) and WEAVIATE_API_KEY are required"
+        )
+    headers = (
+        {"X-Friendli-Token": os.getenv("FRIENDLI_TOKEN")}
+        if os.getenv("FRIENDLI_TOKEN")
+        else None
+    )
     client = weaviate.connect_to_weaviate_cloud(
         cluster_url=url,
         auth_credentials=Auth.api_key(key),
@@ -141,7 +146,10 @@ def main() -> None:
     print(answer)
     print("\n=== Sources ===\n")
     for c in contexts:
-        print(f"- [{c.get('date')}] ({c.get('source_type')}) {c.get('url')}#chunk-{c.get('chunkIndex')}")
+        print(
+            f"- [{c.get('date')}] ({c.get('source_type')}) "
+            f"{c.get('url')}#chunk-{c.get('chunkIndex')}"
+        )
 
 
 if __name__ == "__main__":

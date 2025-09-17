@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import List, Dict, Optional
+from textwrap import shorten
+from typing import List, Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 
 # Load environment
 load_dotenv()
@@ -50,10 +51,6 @@ class AskResponse(BaseModel):
     sources: List[Source]
 
 
-# Utilities borrowed from agent/agent.py
-from textwrap import shorten
-
-
 def build_prompt_with_context(question: str, contexts: list[dict], max_chars: int = 6000) -> str:
     context_blocks = []
     for c in contexts:
@@ -94,7 +91,11 @@ def get_strands_openai_model():
     if base_url and "friendli.ai" in base_url and (
         model_id.startswith("gpt-") or model_id in ("gpt-4o-mini", "gpt-4o", "gpt-4.1")
     ):
-        model_id = os.getenv("STRANDS_MODEL") or os.getenv("OPENAI_MODEL") or "meta-llama-3.3-70b-instruct"
+        model_id = (
+            os.getenv("STRANDS_MODEL")
+            or os.getenv("OPENAI_MODEL")
+            or "meta-llama-3.3-70b-instruct"
+        )
 
     return OpenAIModel(
         client_args={

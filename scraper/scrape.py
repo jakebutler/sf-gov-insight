@@ -7,16 +7,18 @@ MVP behavior:
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
 import re
+from datetime import datetime, timezone
+from io import BytesIO
+from typing import Any, Dict, Optional
+
+import pdfplumber
 import requests
 from bs4 import BeautifulSoup
-from io import BytesIO
-import pdfplumber
 from dateutil import parser as dateparser
-from scraper.utils import read_urls_from_csv, append_jsonl, generate_meeting_id
+
 from scraper import extractors
+from scraper.utils import append_jsonl, generate_meeting_id, read_urls_from_csv
 
 
 def _fetch_markdown(url: str) -> str | None:
@@ -90,7 +92,12 @@ def _fetch_pdf_text(url: str) -> Optional[str]:
 def _fetch_url_text_auto(url: str) -> Optional[str]:
     """Detect content type and fetch text accordingly (PDF vs HTML)."""
     try:
-        head = requests.head(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15, allow_redirects=True)
+        head = requests.head(
+            url,
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=15,
+            allow_redirects=True,
+        )
         ctype = head.headers.get("Content-Type", "").lower()
         if "pdf" in ctype or url.lower().endswith(".pdf"):
             return _fetch_pdf_text(url)
@@ -157,7 +164,7 @@ def extract_page(url: str, row: Optional[Dict[str, Any]] = None) -> Dict[str, An
             )
             if items:
                 record["meetingItems"] = items
-    except Exception as e:
+    except Exception:
         # Graceful fallback; keep placeholder record
         pass
 

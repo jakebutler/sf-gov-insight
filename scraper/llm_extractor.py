@@ -7,7 +7,11 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 
-def extract_with_llm(url: str, provider: str = "openai/gpt-4o", api_token: Optional[str] = None) -> Dict[str, Any]:
+def extract_with_llm(
+    url: str,
+    provider: str = "openai/gpt-4o",
+    api_token: Optional[str] = None,
+) -> Dict[str, Any]:
     """Extract structured meeting data using an LLM via Crawl4AI.
 
     Returns a dict with keys matching MeetingSchema. Requires valid provider credentials.
@@ -20,8 +24,8 @@ def extract_with_llm(url: str, provider: str = "openai/gpt-4o", api_token: Optio
     try:
         from crawl4ai import (
             AsyncWebCrawler,
-            CrawlerRunConfig,
             CacheMode,
+            CrawlerRunConfig,
             LLMConfig,
             LLMExtractionStrategy,
         )
@@ -47,7 +51,8 @@ def extract_with_llm(url: str, provider: str = "openai/gpt-4o", api_token: Optio
                 instruction=(
                     "Extract meeting metadata including meeting name, meeting date and location. "
                     "For agenda/minutes/transcript fields, return the full text blocks if present. "
-                    "For meetingItems return an array of items with fileNumber, title, type, status if found."
+                    "For meetingItems return an array of items with fileNumber, title, type, "
+                    "status if found."
                 ),
                 extra_args={"temperature": 0, "max_tokens": 1500},
             ),
