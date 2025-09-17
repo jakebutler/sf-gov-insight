@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEAVIATE_URL=${WEAVIATE_URL}
+      - WEAVIATE_API_KEY=${WEAVIATE_API_KEY}
+      - FRIENDLI_TOKEN=${FRIENDLI_TOKEN:-}
+      - STRANDS_PROVIDER=${STRANDS_PROVIDER:-openai}
+      - STRANDS_MODEL=${STRANDS_MODEL:-gpt-4o-mini}
+      - AWS_REGION=${AWS_REGION:-us-west-2}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-west-2}
+    volumes:
+      - ./.env:/app/.env:ro
+    depends_on:
+      - weaviate
+    restart: unless-stopped
+
+  weaviate:
+    image: semitechnologies/weaviate:1.24.4
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: 'text2vec-openai,generative-openai'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: unless-stopped
+
+volumes:
+  weaviate_data:

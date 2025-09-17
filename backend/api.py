@@ -19,6 +19,11 @@ os.environ.setdefault("AWS_DEFAULT_REGION", "us-west-2")
 
 app = FastAPI(title="SF GovInsight API", version="0.1.0")
 
+# Health check endpoint for Docker
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "sf-gov-insight"}
+
 # CORS for local dev (Vite defaults)
 app.add_middleware(
     CORSMiddleware,

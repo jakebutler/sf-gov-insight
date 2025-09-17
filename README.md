@@ -10,60 +10,52 @@ Scrape SF Board of Supervisors meetings, load into Weaviate, and query via a Str
 - Frontend: `React` + `Vite` + `Tailwind CSS`
 - Observability (optional): `Opik` traces; Friendli serverless via OpenAI-compatible API
 
-## Quickstart
+## Development
 
-1. Create and activate a virtual environment
-```
-python -m venv .venv
-source .venv/bin/activate
-```
+### Local Setup
 
-2. Install dependencies
-```
-pip install -r requirements.txt
-```
+1. **Backend Setup:**
+   ```bash
+   python -m venv .venv-sfgov
+   source .venv-sfgov/bin/activate  # On Windows: .venv-sfgov\Scripts\activate
+   pip install -r requirements.txt
+   ```
 
-3. Configure environment
-- Fill in `.env` (created for you) with your keys:
-```
-OPENAI_API_KEY=
-WEAVIATE_URL=
-WEAVIATE_API_KEY=
-# Optional alias supported by ingest/agent:
-WEAVIATE_CLUSTER_URL=
-# For Strands default (Bedrock)
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_DEFAULT_REGION=us-west-2
-# Friendli + Opik (optional demo tracing)
-FRIENDLI_TOKEN=
-OPIK_USE_LOCAL=false
-OPIK_PROJECT_NAME=rag-project
-OPIK_API_KEY=
-# Optional model selection (used by API when provider=openai)
-STRANDS_MODEL=gpt-4o-mini
-```
+2. **Frontend Setup:**
+   ```bash
+   cd web
+   npm install
+   ```
 
-4. Prepare input data
-- Export your Google Sheet as `data/urls.csv` with at least the `url` column.
+3. **Environment Variables:**
+   Create a `.env` file in the project root:
+   ```bash
+   OPENAI_API_KEY=your_openai_api_key_here
+   WEAVIATE_URL=your_weaviate_cluster_url
+   WEAVIATE_API_KEY=your_weaviate_api_key
+   # Optional for alternative providers:
+   FRIENDLI_TOKEN=your_friendli_token
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   AWS_REGION=us-west-2
+   ```
 
-5. Run the scraper (MVP placeholder extraction)
-```
-# Single URL
-python -m scraper.scrape "https://example.com/meeting1"
+### Running the Application
 
-# Batch from CSV
-python -m scraper.scrape --batch data/urls.csv
+#### Option 1: Docker (Recommended for Production)
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build and run manually
+docker build -t sf-gov-insight .
+docker run -p 8000:8000 --env-file .env sf-gov-insight
 ```
 
-6. Ingest into Weaviate
-```
-python -m ingest.ingest --jsonl data/meetings.jsonl
-```
-
-7. Test retrieval
-```
-python -m ingest.ingest --test-query "What did they say about housing?" --top-k 5
+#### Option 2: Combined Dev Script
+```bash
+# Runs both backend and frontend together
+./dev.sh
 ```
 
 8. Run the Strands Agent

@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
+    branches: [ main, init-pr ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   backend:
@@ -10,45 +12,70 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.13'
+      - name: Install system dependencies for crawl4ai
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Install linters/type checkers
-        run: |
-          pip install ruff mypy
-      - name: Ruff (lint)
-        run: |
-          ruff version
-          ruff check .
-      - name: Mypy (type check)
-        run: |
-          mypy --version
-          mypy
       - name: Run tests
         run: |
-          pytest -q || true
-        # Note: currently no tests; allow pass to avoid blocking PRs initially.
+          python -m pytest --tb=short
+      - name: Lint with ruff
+        run: |
+          ruff check .
+      - name: Type check with mypy
+        run: |
+          mypy .
 
   frontend:
-    name: Frontend (Web build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Type check (TypeScript)
-        run: npm run typecheck
-      - name: Build
-        run: npm run build
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd web
+        npm ci
+        
+    - name: Type check
+      run: |
+        cd web
+        npm run typecheck
+        
+    - name: Build
+      run: |
+        cd web
+        npm run build
+        
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t sf-gov-insight:latest .
+        
+    - name: Test Docker image
+      run: |
+        docker run --rm -d --name test-app -p 8000:8000 sf-gov-insight:latest
+        sleep 10
+        curl -f http://localhost:8000/health || exit 1
+        docker stop test-app
