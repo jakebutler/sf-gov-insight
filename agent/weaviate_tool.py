@@ -43,8 +43,14 @@ def _get_weaviate_client():
     url = os.getenv("WEAVIATE_URL") or os.getenv("WEAVIATE_CLUSTER_URL")
     key = os.getenv("WEAVIATE_API_KEY")
     if not url or not key:
-        raise RuntimeError("WEAVIATE_URL (or WEAVIATE_CLUSTER_URL) and WEAVIATE_API_KEY are required")
-    headers = {"X-Friendli-Token": os.getenv("FRIENDLI_TOKEN")} if os.getenv("FRIENDLI_TOKEN") else None
+        raise RuntimeError(
+            "WEAVIATE_URL (or WEAVIATE_CLUSTER_URL) and WEAVIATE_API_KEY are required"
+        )
+    headers = (
+        {"X-Friendli-Token": os.getenv("FRIENDLI_TOKEN")}
+        if os.getenv("FRIENDLI_TOKEN")
+        else None
+    )
     client = weaviate.connect_to_weaviate_cloud(
         cluster_url=url,
         auth_credentials=Auth.api_key(key),

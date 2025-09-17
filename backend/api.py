@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import List, Dict, Optional
+from textwrap import shorten
+from typing import List, Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 
 # Load environment
 load_dotenv()
@@ -17,6 +18,11 @@ os.environ.setdefault("AWS_REGION", "us-west-2")
 os.environ.setdefault("AWS_DEFAULT_REGION", "us-west-2")
 
 app = FastAPI(title="SF GovInsight API", version="0.1.0")
+
+# Health check endpoint for Docker
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "sf-gov-insight"}
 
 # CORS for local dev (Vite defaults)
 app.add_middleware(
@@ -48,10 +54,6 @@ class Source(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     sources: List[Source]
-
-
-# Utilities borrowed from agent/agent.py
-from textwrap import shorten
 
 
 def build_prompt_with_context(question: str, contexts: list[dict], max_chars: int = 6000) -> str:
@@ -94,7 +96,11 @@ def get_strands_openai_model():
     if base_url and "friendli.ai" in base_url and (
         model_id.startswith("gpt-") or model_id in ("gpt-4o-mini", "gpt-4o", "gpt-4.1")
     ):
-        model_id = os.getenv("STRANDS_MODEL") or os.getenv("OPENAI_MODEL") or "meta-llama-3.3-70b-instruct"
+        model_id = (
+            os.getenv("STRANDS_MODEL")
+            or os.getenv("OPENAI_MODEL")
+            or "meta-llama-3.3-70b-instruct"
+        )
 
     return OpenAIModel(
         client_args={

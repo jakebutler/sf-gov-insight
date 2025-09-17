@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
-from textwrap import shorten
 import os
+from textwrap import shorten
 
 from dotenv import load_dotenv
+
 # Ensure AWS region is set for Bedrock-backed Strands usage by default
 os.environ.setdefault("AWS_REGION", "us-west-2")
 os.environ.setdefault("AWS_DEFAULT_REGION", "us-west-2")
@@ -38,7 +39,12 @@ def _configure_strands(provider: str | None, model: str | None) -> None:
         os.environ.setdefault("STRANDS_MODEL", model)
 
 
-def run_agent(question: str, top_k: int = 5, provider: str | None = None, model: str | None = None) -> None:
+def run_agent(
+    question: str,
+    top_k: int = 5,
+    provider: str | None = None,
+    model: str | None = None,
+) -> None:
     load_dotenv()
 
     # Retrieve context from Weaviate first
@@ -49,13 +55,18 @@ def run_agent(question: str, top_k: int = 5, provider: str | None = None, model:
     # Strands Agent
     from strands import Agent
     agent_instance = None
-    if (provider or os.getenv("STRANDS_PROVIDER") or os.getenv("STRANDS_MODEL_PROVIDER")) == "openai":
+    if (
+        provider
+        or os.getenv("STRANDS_PROVIDER")
+        or os.getenv("STRANDS_MODEL_PROVIDER")
+    ) == "openai":
         # Build an explicit OpenAIModel as per Strands docs
         try:
             from strands.models.openai import OpenAIModel  # type: ignore
         except Exception as e:
             raise RuntimeError(
-                "Strands OpenAI provider not available. Ensure 'strands-agents[openai]' is installed."
+                "Strands OpenAI provider not available. "
+                "Ensure 'strands-agents[openai]' is installed."
             ) from e
 
         api_key = os.getenv("OPENAI_API_KEY")
@@ -91,14 +102,20 @@ def run_agent(question: str, top_k: int = 5, provider: str | None = None, model:
     print(answer)
     print("\n=== Sources ===\n")
     for c in contexts:
-        print(f"- [{c.get('date')}] ({c.get('source_type')}) {c.get('url')}#chunk-{c.get('chunkIndex')}")
+        print(
+            f"- [{c.get('date')}] ({c.get('source_type')}) "
+            f"{c.get('url')}#chunk-{c.get('chunkIndex')}"
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Strands Agent for SF Supes RAG")
     parser.add_argument("--question", required=True)
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--provider", help="Strands model provider override, e.g., 'openai' or 'bedrock'")
+    parser.add_argument(
+        "--provider",
+        help="Strands model provider override, e.g., 'openai' or 'bedrock'",
+    )
     parser.add_argument("--model", help="Strands model name override, e.g., 'gpt-4o-mini'")
     args = parser.parse_args()
     run_agent(args.question, args.top_k, provider=args.provider, model=args.model)

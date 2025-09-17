@@ -6,8 +6,7 @@ is not installed yet.
 """
 from __future__ import annotations
 
-from typing import Dict, Any
-
+from typing import Any, Dict
 
 # Example CSS schema to extract a meeting items table.
 MEETING_TABLE_SCHEMA: Dict[str, Any] = {
@@ -30,25 +29,29 @@ def extract_table_css(url: str) -> Dict[str, Any]:
 
     Returns a dict parsed from JSON extraction content or an empty dict on failure.
     """
+    import asyncio
     import json
+    
     try:
-        from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode
+        from crawl4ai import AsyncWebCrawler, CacheMode, CrawlerRunConfig
         from crawl4ai import JsonCssExtractionStrategy
-    except Exception as e:
-        raise RuntimeError(
-            "crawl4ai is required for CSS extraction. Please `pip install crawl4ai`."
-        ) from e
+    except ImportError:
+        # Return empty dict if crawl4ai is not available
+        return {}
 
     async def _run() -> Dict[str, Any]:
-        async with AsyncWebCrawler() as crawler:
-            config = CrawlerRunConfig(
-                cache_mode=CacheMode.BYPASS,
-                extraction_strategy=JsonCssExtractionStrategy(MEETING_TABLE_SCHEMA),
-            )
-            res = await crawler.arun(url=url, config=config)
-            if not res.extracted_content:
-                return {}
-            return json.loads(res.extracted_content)
+        try:
+            async with AsyncWebCrawler() as crawler:
+                config = CrawlerRunConfig(
+                    cache_mode=CacheMode.BYPASS,
+                    extraction_strategy=JsonCssExtractionStrategy(MEETING_TABLE_SCHEMA),
+                )
+                res = await crawler.arun(url=url, config=config)
+                if not res.extracted_content:
+                    return {}
+                return json.loads(res.extracted_content)
+        except Exception:
+            # Return empty dict on any crawl4ai errors
+            return {}
 
-    import asyncio
     return asyncio.run(_run())

@@ -29,7 +29,7 @@ export function App() {
 
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/api/ask', {
+      const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: message, top_k: 5 }),

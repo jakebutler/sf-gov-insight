@@ -1,0 +1,37 @@
+[tool.ruff]
+line-length = 100
+# Target latest Python used here
+target-version = "py313"
+exclude = [
+  ".venv",
+  ".venv-sfgov",
+  "web",
+  "ai_conference_hack_day_weaviate.py",
+]
+
+[tool.ruff.lint]
+# Basic error/formatter rules + import sorting
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agent", "backend", "ingest", "scraper", "demos"]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+warn_unused_ignores = false
+warn_redundant_casts = false
+warn_return_any = false
+disallow_untyped_defs = false
+no_implicit_optional = true
+pretty = true
+plugins = []
+
+# Limit checking to our source packages
+files = [
+  "agent",
+  "backend",
+  "ingest",
+  "scraper",
+  "demos",
+]

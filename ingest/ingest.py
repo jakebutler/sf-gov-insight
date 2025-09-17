@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from typing import Dict, List, Iterable
+from typing import Dict, Iterable, List
 
 from dotenv import load_dotenv
+
 from ingest.chunking import chunk_text
 
 
@@ -13,9 +14,10 @@ def get_env(name: str, default: str | None = None) -> str | None:
     return os.getenv(name, default)
 
 
+ 
 def get_weaviate_client():
     import weaviate
-    from weaviate.classes.init import Auth, AdditionalConfig, Timeout
+    from weaviate.classes.init import AdditionalConfig, Auth, Timeout
 
     cluster_url = (
         get_env("WEAVIATE_URL")
@@ -51,7 +53,7 @@ def get_weaviate_client():
 
 
 def ensure_schema(client) -> None:
-    from weaviate.classes.config import Property, DataType, Configure
+    from weaviate.classes.config import Configure, DataType, Property
 
     # Create if absent
     try:
@@ -184,10 +186,24 @@ def test_query(query: str, top_k: int = 5) -> None:
 def main() -> None:
     load_dotenv()
     parser = argparse.ArgumentParser(description="Ingest meetings into Weaviate")
-    parser.add_argument("--jsonl", default="data/meetings.jsonl", help="Path to JSONL of meetings")
-    parser.add_argument("--test-query", dest="test_query_str", help="Run a retrieval test instead of ingesting")
+    parser.add_argument(
+        "--jsonl",
+        default="data/meetings.jsonl",
+        help="Path to JSONL of meetings",
+    )
+    parser.add_argument(
+        "--test-query",
+        dest="test_query_str",
+        help="Run a retrieval test instead of ingesting",
+    )
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--reset", action="store_true", help="Drop and recreate the MeetingChunk collection before ingesting")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help=(
+            "Drop and recreate the MeetingChunk collection before ingesting"
+        ),
+    )
     args = parser.parse_args()
 
     if args.test_query_str:

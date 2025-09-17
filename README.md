@@ -10,60 +10,52 @@ Scrape SF Board of Supervisors meetings, load into Weaviate, and query via a Str
 - Frontend: `React` + `Vite` + `Tailwind CSS`
 - Observability (optional): `Opik` traces; Friendli serverless via OpenAI-compatible API
 
-## Quickstart
+## Development
 
-1. Create and activate a virtual environment
-```
-python -m venv .venv
-source .venv/bin/activate
-```
+### Local Setup
 
-2. Install dependencies
-```
-pip install -r requirements.txt
-```
+1. **Backend Setup:**
+   ```bash
+   python -m venv .venv-sfgov
+   source .venv-sfgov/bin/activate  # On Windows: .venv-sfgov\Scripts\activate
+   pip install -r requirements.txt
+   ```
 
-3. Configure environment
-- Fill in `.env` (created for you) with your keys:
-```
-OPENAI_API_KEY=
-WEAVIATE_URL=
-WEAVIATE_API_KEY=
-# Optional alias supported by ingest/agent:
-WEAVIATE_CLUSTER_URL=
-# For Strands default (Bedrock)
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_DEFAULT_REGION=us-west-2
-# Friendli + Opik (optional demo tracing)
-FRIENDLI_TOKEN=
-OPIK_USE_LOCAL=false
-OPIK_PROJECT_NAME=rag-project
-OPIK_API_KEY=
-# Optional model selection (used by API when provider=openai)
-STRANDS_MODEL=gpt-4o-mini
-```
+2. **Frontend Setup:**
+   ```bash
+   cd web
+   npm install
+   ```
 
-4. Prepare input data
-- Export your Google Sheet as `data/urls.csv` with at least the `url` column.
+3. **Environment Variables:**
+   Create a `.env` file in the project root:
+   ```bash
+   OPENAI_API_KEY=your_openai_api_key_here
+   WEAVIATE_URL=your_weaviate_cluster_url
+   WEAVIATE_API_KEY=your_weaviate_api_key
+   # Optional for alternative providers:
+   FRIENDLI_TOKEN=your_friendli_token
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   AWS_REGION=us-west-2
+   ```
 
-5. Run the scraper (MVP placeholder extraction)
-```
-# Single URL
-python -m scraper.scrape "https://example.com/meeting1"
+### Running the Application
 
-# Batch from CSV
-python -m scraper.scrape --batch data/urls.csv
+#### Option 1: Docker (Recommended for Production)
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build and run manually
+docker build -t sf-gov-insight .
+docker run -p 8000:8000 --env-file .env sf-gov-insight
 ```
 
-6. Ingest into Weaviate
-```
-python -m ingest.ingest --jsonl data/meetings.jsonl
-```
-
-7. Test retrieval
-```
-python -m ingest.ingest --test-query "What did they say about housing?" --top-k 5
+#### Option 2: Combined Dev Script
+```bash
+# Runs both backend and frontend together
+./dev.sh
 ```
 
 8. Run the Strands Agent
@@ -113,6 +105,52 @@ http://localhost:5173
 ```
 
 The chat calls `POST /api/ask` on `http://localhost:8000`. The response includes an answer and sources; the sidebar shows recent sources with direct links to transcript/minutes/agenda.
+
+### Vite proxy & relative API path
+- The frontend calls the backend via a relative path (`/api/ask`).
+- In local dev, Vite proxies `/api/*` to the FastAPI server at `http://localhost:8000`.
+- See `web/vite.config.ts` (`server.proxy`) for details.
+- If `localhost` behaves oddly on your machine, use `http://127.0.0.1:5173` for the frontend.
+
+### Local dev shortcuts
+We provide helper scripts to run both backend and frontend together:
+
+- One command (recommended):
+  ```
+  make dev
+  ```
+  This uses `./dev.sh` under the hood to:
+  - Create/refresh a virtualenv at `.venv-sfgov`
+  - `pip install -r requirements.txt`
+  - Start `uvicorn` on `http://localhost:8000`
+  - Start Vite on `http://127.0.0.1:5173`
+
+- Run only backend:
+  ```
+  make backend
+  ```
+
+- Run only frontend:
+  ```
+  make frontend
+  ```
+
+## CI/CD
+
+### CodeRabbit PR reviews
+We use CodeRabbit’s AI PR reviewer on pull requests. The workflow lives at `.github/workflows/ai-pr-reviewer.yml` and runs on:
+- PR opened / synchronized / reopened / ready_for_review
+- New review comments
+
+To enable it fully, add the following repository secret:
+- `OPENAI_API_KEY`: your OpenAI API key
+
+### Basic CI (backend and frontend)
+`.github/workflows/ci.yml` runs on push and pull requests:
+- Backend (Python): sets up Python, installs `requirements.txt`, runs `pytest`.
+- Frontend (Node): installs dependencies and runs `npm run build` in `web/`.
+
+This helps catch lint/build/test regressions early across both stacks.
 
 ### Switch providers for the Web UI
 
