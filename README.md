@@ -114,6 +114,52 @@ http://localhost:5173
 
 The chat calls `POST /api/ask` on `http://localhost:8000`. The response includes an answer and sources; the sidebar shows recent sources with direct links to transcript/minutes/agenda.
 
+### Vite proxy & relative API path
+- The frontend calls the backend via a relative path (`/api/ask`).
+- In local dev, Vite proxies `/api/*` to the FastAPI server at `http://localhost:8000`.
+- See `web/vite.config.ts` (`server.proxy`) for details.
+- If `localhost` behaves oddly on your machine, use `http://127.0.0.1:5173` for the frontend.
+
+### Local dev shortcuts
+We provide helper scripts to run both backend and frontend together:
+
+- One command (recommended):
+  ```
+  make dev
+  ```
+  This uses `./dev.sh` under the hood to:
+  - Create/refresh a virtualenv at `.venv-sfgov`
+  - `pip install -r requirements.txt`
+  - Start `uvicorn` on `http://localhost:8000`
+  - Start Vite on `http://127.0.0.1:5173`
+
+- Run only backend:
+  ```
+  make backend
+  ```
+
+- Run only frontend:
+  ```
+  make frontend
+  ```
+
+## CI/CD
+
+### CodeRabbit PR reviews
+We use CodeRabbit’s AI PR reviewer on pull requests. The workflow lives at `.github/workflows/ai-pr-reviewer.yml` and runs on:
+- PR opened / synchronized / reopened / ready_for_review
+- New review comments
+
+To enable it fully, add the following repository secret:
+- `OPENAI_API_KEY`: your OpenAI API key
+
+### Basic CI (backend and frontend)
+`.github/workflows/ci.yml` runs on push and pull requests:
+- Backend (Python): sets up Python, installs `requirements.txt`, runs `pytest`.
+- Frontend (Node): installs dependencies and runs `npm run build` in `web/`.
+
+This helps catch lint/build/test regressions early across both stacks.
+
 ### Switch providers for the Web UI
 
 The backend defaults to OpenAI. To run the same UI with Amazon Bedrock:
