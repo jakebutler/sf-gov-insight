@@ -25,7 +25,7 @@ def _fetch_markdown(url: str) -> str | None:
     """Fetch page markdown via Crawl4AI; return None on failure."""
     try:
         from crawl4ai import AsyncWebCrawler  # lazy import to keep CLI usable
-    except Exception:
+    except ImportError:
         return None
 
     import asyncio

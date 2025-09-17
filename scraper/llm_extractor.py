@@ -31,10 +31,9 @@ def extract_with_llm(
         )
         from crawl4ai.content_filter_strategy import PruningContentFilter
         from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
-    except Exception as e:
-        raise RuntimeError(
-            "crawl4ai is required for LLM extraction. Please `pip install crawl4ai`."
-        ) from e
+    except ImportError:
+        # Return empty dict if crawl4ai is not available
+        return {}
 
     import asyncio
     import json
